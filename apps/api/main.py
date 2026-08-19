@@ -54,11 +54,7 @@ def computed_exposure(scenario: str, at: int | None = None):
     scenario = scenario if scenario in SCENARIOS else "current"; cache_key = (scenario, at)
     if cache_key in _exposure_cache: return _exposure_cache[cache_key]
     event = STATE["event"]; centroid = (event["centroid"]["latitude"], event["centroid"]["longitude"]); wind = STATE["signals"]["wind_direction"]
-    geometry_scenario = scenario
-    if at is not None and scenario == "current" and at < len(STATE["timeline"]):
-        replay_spread = STATE["timeline"][at]["spread_km"]
-        geometry_scenario = "severe" if replay_spread >= 10 else "adverse" if replay_spread >= 5 else "current"
-    feature = scenario_envelope(centroid, wind, geometry_scenario)
+    feature = scenario_envelope(centroid, wind, scenario)
     result = exposure(STATE["portfolio"], centroid, event["event_radius_km"], feature); result["scenario_geometry"] = feature; result["scenario"]["name"] = SCENARIOS[scenario]["name"]; result["scenario"]["key"] = scenario
     estimates = loss_and_claims(result, scenario); result["estimates"] = estimates; result["reinsurance"] = reinsurance(estimates["loss_low"], estimates["loss_high"])
     if at is not None and at < len(STATE["timeline"]):
