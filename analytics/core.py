@@ -36,8 +36,8 @@ def risk_components(signals: dict[str, Any]) -> dict[str, float]:
     wind = float(signals.get("wind_score", clamp(wind_speed * 2.25 + (12 if signals.get("wind_gust_kmh", 0) > 45 else 0))))
     warning_level = str(signals.get("warning_level", "none")).lower()
     warning = float(signals.get("warning_score", WARNING_SCORES.get(warning_level, 0)))
-    vegetation = float(signals.get("vegetation_score", 72)) if signals else 0
-    growth = float(signals.get("growth_score", 72)) if signals else 0
+    vegetation = float(signals["vegetation_score"]) if "vegetation_score" in signals else (50 if signals else 0)
+    growth = float(signals["growth_score"]) if "growth_score" in signals else (min(100, 20 + len(fires) * 5) if signals else 0)
     sources = sum(bool(signals.get(k)) for k in ("active_fire_detections", "dwd_danger", "warning_level", "effis_context"))
     corroboration = float(signals.get("corroboration_score", clamp(sources / 4 * 100)))
     return {"active_fire": clamp(active), "weather": clamp(weather), "wind": clamp(wind), "warning": clamp(warning), "vegetation": clamp(vegetation), "growth": clamp(growth), "corroboration": clamp(corroboration)}

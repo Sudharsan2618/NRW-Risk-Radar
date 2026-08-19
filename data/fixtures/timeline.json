@@ -1,9 +1,9 @@
 {
   "event_id":"evt-huertgenwald-2022",
   "snapshots":[
-    {"timestamp":"2022-08-13T12:00:00Z","label":"Aug 13 · 12:00","risk_score":62,"confidence":71,"warning_level":"none","active_fire_count":1,"spread_km":2,"claims":[18,48],"tiv":46200000,"actions":["Monitor FIRMS detections","Keep claims lead informed"]},
-    {"timestamp":"2022-08-14T00:00:00Z","label":"Aug 14 · 00:00","risk_score":74,"confidence":76,"warning_level":"informational","active_fire_count":4,"spread_km":5,"claims":[44,126],"tiv":118000000,"actions":["Open catastrophe watch","Pre-alert customer operations"]},
-    {"timestamp":"2022-08-14T06:00:00Z","label":"Aug 14 · 06:00","risk_score":81,"confidence":84,"warning_level":"official warning","active_fire_count":5,"spread_km":5,"claims":[72,198],"tiv":184000000,"actions":["Activate catastrophe claims workflow","Prepare geotargeted warning communication"]},
-    {"timestamp":"2022-08-14T12:00:00Z","label":"Aug 14 · 12:00","risk_score":87,"confidence":94,"warning_level":"evacuation","active_fire_count":6,"spread_km":10,"claims":[124,342],"tiv":315000000,"actions":["Alert reinsurance team","Prepare preliminary reserve"]}
+    {"timestamp":"2022-08-13T12:00:00Z","label":"Aug 13 · 12:00","risk_score":54,"confidence":75,"warning_level":"none","active_fire_count":1,"spread_km":2,"claims":[18,48],"tiv":46200000,"actions":["Monitor FIRMS detections","Keep claims lead informed"]},
+    {"timestamp":"2022-08-14T00:00:00Z","label":"Aug 14 · 00:00","risk_score":68,"confidence":100,"warning_level":"informational","active_fire_count":4,"spread_km":5,"claims":[44,126],"tiv":118000000,"actions":["Open catastrophe watch","Pre-alert customer operations"]},
+    {"timestamp":"2022-08-14T06:00:00Z","label":"Aug 14 · 06:00","risk_score":77,"confidence":100,"warning_level":"official warning","active_fire_count":5,"spread_km":5,"claims":[72,198],"tiv":184000000,"actions":["Activate catastrophe claims workflow","Prepare geotargeted warning communication"]},
+    {"timestamp":"2022-08-14T12:00:00Z","label":"Aug 14 · 12:00","risk_score":87,"confidence":100,"warning_level":"evacuation","active_fire_count":6,"spread_km":10,"claims":[124,342],"tiv":315000000,"actions":["Alert reinsurance team","Prepare preliminary reserve"]}
   ]
 }

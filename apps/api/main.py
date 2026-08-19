@@ -35,7 +35,7 @@ def load_state():
     if not portfolio_path.exists(): portfolio = generate()
     else: portfolio = read_json(portfolio_path)
     warnings = nina.get("warnings", []); warning = warnings[0] if warnings else {}
-    signals = {"active_fire_detections": firms.get("observations", []), "dwd_danger": dwd.get("danger_level"), "weather_score": dwd.get("score"), "wind_direction": dwd.get("wind_direction", event["wind_direction"]), "wind_speed_kmh": dwd.get("wind_speed_kmh", event["wind_speed_kmh"]), "wind_gust_kmh": dwd.get("wind_gust_kmh", 0), "warning_level": warning.get("level", "none"), "effis_context": bool(effis.get("features")), "local_confirmation": True, "recent_observation": True, "vegetation_score": 72, "growth_score": 72}
+    signals = {"active_fire_detections": firms.get("observations", []), "dwd_danger": dwd.get("danger_level"), "weather_score": dwd.get("score"), "wind_direction": dwd.get("wind_direction", event["wind_direction"]), "wind_speed_kmh": dwd.get("wind_speed_kmh", event["wind_speed_kmh"]), "wind_gust_kmh": dwd.get("wind_gust_kmh", 0), "warning_level": warning.get("level", "none"), "effis_context": bool(effis.get("features")), "local_confirmation": True, "recent_observation": True}
     health = {"NASA FIRMS": firms_health, "DWD": dwd_health, "NINA": nina_health, "EFFIS / Copernicus": effis_health}
     return {"event": event, "firms": firms, "dwd": dwd, "nina": nina, "effis": effis, "warning": warning, "signals": signals, "portfolio": portfolio, "health": health, "timeline": read_json(FIXTURES / "timeline.json")["snapshots"]}
 
@@ -48,8 +48,7 @@ def risk_payload(at: int | None = None):
         snap = timeline[at]; signals["active_fire_detections"] = STATE["firms"]["observations"][:snap["active_fire_count"]]; signals["warning_level"] = snap["warning_level"]
         if snap["warning_level"] == "none": signals["warning_score"] = 0
     components = risk_components(signals); score = calculate_risk(components); confidence = confidence_score(signals); previous = timeline[max(0, (at if at is not None else len(timeline) - 1) - 1)]["risk_score"] if timeline else score
-    if at is not None and at < len(timeline): score, confidence = timeline[at]["risk_score"], timeline[at]["confidence"]
-    return {"score": score, "confidence": confidence / 100, "confidence_percent": confidence, "trend": trend(score, previous), "components": components, "weights": {key: value for key, value in {"active_fire": .25, "weather": .20, "wind": .15, "warning": .15, "vegetation": .10, "growth": .10, "corroboration": .05}.items()}, "method": "Weighted transparent components; risk is not a scientific fire-spread probability."}
+    return {"score": score, "confidence": confidence / 100, "confidence_percent": confidence, "trend": trend(score, previous), "components": components, "weights": {key: value for key, value in {"active_fire": .25, "weather": .20, "wind": .15, "warning": .15, "vegetation": .10, "growth": .10, "corroboration": .05}.items()}, "method": "Weighted transparent components. Active fire, DWD weather, wind and warning values come from the selected source snapshot. Vegetation/fuel uses a neutral 50 proxy because no vegetation feed is loaded; growth uses 20 + 5 per active-fire detection. Those proxies are deterministic assumptions, not random observations. Risk is not a scientific fire-spread probability."}
 
 def computed_exposure(scenario: str, at: int | None = None):
     scenario = scenario if scenario in SCENARIOS else "current"; cache_key = (scenario, at)

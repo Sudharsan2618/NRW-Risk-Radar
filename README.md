@@ -16,9 +16,10 @@ All financial, claims, staffing, and spread outputs are labelled planning assump
 
 ## Architecture
 
-The prototype uses a dependency-free Python HTTP API and static TypeScript-compatible browser JavaScript so the complete demo runs offline. Analytics live in `analytics/core.py`; source fixtures are under `data/fixtures`; the API is `apps/api/main.py`; UI is `apps/web`; the seeded portfolio generator is `synthetic/generate_portfolio.py`.
+The prototype uses a dependency-free Python HTTP API and static TypeScript-compatible browser JavaScript so the complete demo runs offline. Maps use vendored Leaflet with an OpenStreetMap tile layer when network access is available; the local SVG overlays remain visible when tiles are unavailable. Analytics live in `analytics/core.py`; source fixtures are under `data/fixtures`; the API is `apps/api/main.py`; UI is `apps/web`; the seeded portfolio generator is `synthetic/generate_portfolio.py`.
 
 `DATA_MODE=demo` is the default and reads deterministic fixtures. `DATA_MODE=live` attempts URLs configured through `FIRMS_URL`, `DWD_URL`, `NINA_URL`, and `EFFIS_URL`, then falls back to the corresponding fixture when a request fails. The UI visibly reports fixture fallback status.
+The in-app **Help / demo guide** link opens `apps/web/help.html` and explains every screen, calculation, data boundary, and five-minute demo step.
 
 ## Run locally
 
@@ -61,18 +62,19 @@ The live URLs are intentionally environment-provided because FIRMS commonly requ
 - **NINA:** official warning level, text, affected area, and timestamps.
 - **EFFIS / Copernicus:** historical burned-area context and corroborating geometry.
 
-Risk is the configured weighted sum: active fire 25%, weather 20%, wind 15%, warnings 15%, vegetation/fuel 10%, growth 10%, corroboration 5%. DWD levels map 1/2/3/4/5 to 10/30/50/75/100; warning levels map none/informational/official/severe/evacuation to 0/20/60/80/100. Confidence uses explicit source-presence increments and is capped at 100%.
+Risk is the configured weighted sum: active fire 25%, weather 20%, wind 15%, warnings 15%, vegetation/fuel 10%, growth 10%, corroboration 5%. DWD levels map 1/2/3/4/5 to 10/30/50/75/100; warning levels map none/informational/official/severe/evacuation to 0/20/60/80/100. When no vegetation feed is loaded, vegetation uses a neutral deterministic 50 proxy and growth uses `20 + 5 × active-fire detections`; the UI labels these assumptions. Confidence uses explicit source-presence increments and is capped at 100%.
 
 Scenario envelopes use an oriented ellipse-like polygon with 2/5/10 km directional spread and 1/2/4 km crosswind. They are explicitly not predicted fire perimeters. Exposure uses point-in-polygon intersection plus haversine distance bands. Loss and claims use configurable synthetic ratios in `analytics/core.py`; reinsurance is a synthetic €100m layer attaching above €50m retention.
 
 ## Five-minute demo
 
 1. Start `make demo`; open Risk Radar and select Hürtgenwald.
-2. Open Event Intelligence; click **Why?** to inspect component scores and provenance.
-3. Use Portfolio Impact to show distance-band policies and TIV.
-4. Compare Current, Adverse, and Severe; observe geometry, exposure, losses, claims, and treaty status update.
-5. Open Action Center; move operational statuses from Not started to In progress/Completed.
-6. Replay snapshots are represented by the deterministic timeline payload and reset to the final showcase snapshot with **Reset demo**.
+2. Use **Help / demo guide** for the screen-by-screen explanation.
+3. Open Event Intelligence; click **Why?** to inspect source-backed components and deterministic proxy assumptions.
+4. Use Portfolio Impact to show distance-band policies and TIV.
+5. Compare Current, Adverse, and Severe; observe geometry, exposure, losses, claims, and treaty status update.
+6. Open Action Center; move operational statuses from Not started to In progress/Completed.
+7. Replay snapshots are represented by the deterministic timeline payload and reset to the final showcase snapshot with **Reset demo**.
 
 ## Verify
 
