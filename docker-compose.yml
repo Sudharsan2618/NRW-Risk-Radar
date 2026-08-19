@@ -1,0 +1,12 @@
+services:
+  radar:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATA_MODE: ${DATA_MODE:-demo}
+      PORT: 8025
+    command: sh -c "python synthetic/generate_portfolio.py && python apps/api/main.py"
+    ports:
+      - "8025:8025"

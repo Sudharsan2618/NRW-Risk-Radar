@@ -1,0 +1,19 @@
+data_mode: demo
+risk:
+  active_fire_weight: 0.25
+  weather_weight: 0.20
+  wind_weight: 0.15
+  warning_weight: 0.15
+  vegetation_weight: 0.10
+  growth_weight: 0.10
+  corroboration_weight: 0.05
+scenarios:
+  current: {spread_km: 2, crosswind_km: 1}
+  adverse: {spread_km: 5, crosswind_km: 2}
+  severe: {spread_km: 10, crosswind_km: 4}
+reinsurance:
+  retention: 50000000
+  limit: 100000000
+staffing:
+  adjuster_claims_per_day: 8
+  phone_interactions_per_day: 25

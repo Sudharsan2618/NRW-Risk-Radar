@@ -1,0 +1,17 @@
+{
+  "id": "evt-huertgenwald-2022",
+  "event_type": "wildfire",
+  "name": "Hürtgenwald Wildfire",
+  "status": "contained",
+  "severity": 87,
+  "confidence": 0.94,
+  "trend": "increasing",
+  "centroid": {"latitude": 50.6900, "longitude": 6.3700},
+  "event_radius_km": 0.65,
+  "started_at": "2022-08-13T12:00:00Z",
+  "updated_at": "2022-08-14T12:00:00Z",
+  "primary_source": "NASA FIRMS",
+  "wind_direction": 70,
+  "wind_speed_kmh": 31,
+  "metadata": {"location": "Hürtgenwald, Kreis Düren, NRW", "demo_note": "Curated historical showcase event; outputs are indicative scenario estimates."}
+}

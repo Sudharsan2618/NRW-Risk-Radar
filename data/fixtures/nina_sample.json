@@ -1,0 +1,5 @@
+{
+  "source":"NINA",
+  "source_url":"https://warnung.bund.de/meldungen",
+  "warnings":[{"id":"nina-hr-001","level":"evacuation","title":"Waldbrandgefahr und Rauchentwicklung","description":"Evacuation advisory for forest-edge communities in the Hürtgenwald area. Follow local authority instructions and avoid the affected forest roads.","issued_at":"2022-08-14T11:55:00Z","expires_at":"2022-08-15T12:00:00Z","area":"Hürtgenwald / Kreis Düren","geometry":{"type":"Polygon","coordinates":[[[6.345,50.675],[6.405,50.675],[6.415,50.715],[6.350,50.720],[6.345,50.675]]]}}]
+}

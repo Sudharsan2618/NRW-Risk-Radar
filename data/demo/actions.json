@@ -1,0 +1,30 @@
+[
+  {
+    "id": "claims",
+    "team": "Claims",
+    "title": "Activate catastrophe claims workflow",
+    "detail": "Prepare field adjuster capacity against the selected planning range.",
+    "status": "Not started"
+  },
+  {
+    "id": "customer",
+    "team": "Customer operations",
+    "title": "Prepare geotargeted warning communication",
+    "detail": "Prioritise policyholders in the highest-risk zones.",
+    "status": "Not started"
+  },
+  {
+    "id": "reinsurance",
+    "team": "Reinsurance",
+    "title": "Notify catastrophe / reinsurance team",
+    "detail": "Review adverse and severe attachment awareness outputs.",
+    "status": "Not started"
+  },
+  {
+    "id": "finance",
+    "team": "Finance",
+    "title": "Prepare preliminary reserve",
+    "detail": "Use the indicative loss range as a planning input only.",
+    "status": "Not started"
+  }
+]

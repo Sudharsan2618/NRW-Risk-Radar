@@ -1,0 +1,12 @@
+{
+  "source": "NASA FIRMS",
+  "source_url": "https://firms.modaps.eosdis.nasa.gov/",
+  "observations": [
+    {"id":"fr-001","latitude":50.6889,"longitude":6.3621,"observed_at":"2022-08-13T12:15:00Z","satellite":"VIIRS NOAA-20","confidence":0.82,"frp":42.1},
+    {"id":"fr-002","latitude":50.6918,"longitude":6.3694,"observed_at":"2022-08-13T13:10:00Z","satellite":"VIIRS NOAA-20","confidence":0.87,"frp":58.4},
+    {"id":"fr-003","latitude":50.6942,"longitude":6.3772,"observed_at":"2022-08-13T18:05:00Z","satellite":"VIIRS S-NPP","confidence":0.91,"frp":66.8},
+    {"id":"fr-004","latitude":50.6975,"longitude":6.3849,"observed_at":"2022-08-13T23:35:00Z","satellite":"MODIS Terra","confidence":0.88,"frp":71.3},
+    {"id":"fr-005","latitude":50.7004,"longitude":6.3912,"observed_at":"2022-08-14T05:40:00Z","satellite":"VIIRS NOAA-20","confidence":0.94,"frp":83.6},
+    {"id":"fr-006","latitude":50.7031,"longitude":6.3990,"observed_at":"2022-08-14T11:50:00Z","satellite":"VIIRS S-NPP","confidence":0.96,"frp":91.2}
+  ]
+}

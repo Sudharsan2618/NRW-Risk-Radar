@@ -1,0 +1,13 @@
+{
+  "source":"DWD",
+  "source_url":"https://www.dwd.de/DE/leistungen/waldbrandgef/waldbrandgef.html",
+  "observed_at":"2022-08-14T11:30:00Z",
+  "danger_level":5,
+  "temperature_c":31.4,
+  "humidity_percent":28,
+  "wind_direction":70,
+  "wind_speed_kmh":31,
+  "wind_gust_kmh":49,
+  "precipitation_24h_mm":0.4,
+  "score":100
+}
