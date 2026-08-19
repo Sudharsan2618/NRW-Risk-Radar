@@ -6,7 +6,15 @@ services:
       - .:/app
     environment:
       DATA_MODE: ${DATA_MODE:-demo}
+      FIRMS_URL: ${FIRMS_URL:-}
+      FIRMS_NATIONWIDE_URL: ${FIRMS_NATIONWIDE_URL:-}
+      DWD_URL: ${DWD_URL:-}
+      NINA_URL: ${NINA_URL:-}
+      NINA_INDEX_URL: ${NINA_INDEX_URL:-}
+      EFFIS_URL: ${EFFIS_URL:-}
+      NINA_MAX_WARNINGS: ${NINA_MAX_WARNINGS:-10}
+      NINA_INDEX_MAX_WARNINGS: ${NINA_INDEX_MAX_WARNINGS:-50}
+      LIVE_EVENT_LIMIT: ${LIVE_EVENT_LIMIT:-25}
       PORT: 8025
-    command: sh -c "python synthetic/generate_portfolio.py && python apps/api/main.py"
     ports:
       - "8025:8025"

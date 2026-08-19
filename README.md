@@ -18,7 +18,8 @@ All financial, claims, staffing, and spread outputs are labelled planning assump
 
 The prototype uses a dependency-free Python HTTP API and static TypeScript-compatible browser JavaScript so the complete demo runs offline. Maps use vendored Leaflet with an OpenStreetMap tile layer when network access is available; the local SVG overlays remain visible when tiles are unavailable. Analytics live in `analytics/core.py`; source fixtures are under `data/fixtures`; the API is `apps/api/main.py`; UI is `apps/web`; the seeded portfolio generator is `synthetic/generate_portfolio.py`.
 
-`DATA_MODE=demo` is the default and reads deterministic fixtures. `DATA_MODE=live` attempts URLs configured through `FIRMS_URL`, `DWD_URL`, `NINA_URL`, and `EFFIS_URL`, then falls back to the corresponding fixture when a request fails. The UI visibly reports fixture fallback status.
+`DATA_MODE=demo` is the default and reads deterministic fixtures. `DATA_MODE=live` uses source-specific adapters for FIRMS, DWD, NINA, and EFFIS, then falls back to the corresponding fixture when a request fails. The UI visibly reports fixture fallback status. In live mode, nationwide NINA warnings and clustered Germany-wide FIRMS detections become event candidates.
+
 The in-app **Help / demo guide** link opens `apps/web/help.html` and explains every screen, calculation, data boundary, and five-minute demo step.
 
 ## Run locally
@@ -50,10 +51,45 @@ docker compose up
 ## Switch demo → live
 
 ```bash
-DATA_MODE=live FIRMS_URL="https://..." DWD_URL="https://..." NINA_URL="https://..." EFFIS_URL="https://..." uv run python apps/api/main.py
+DATA_MODE=live \
+FIRMS_URL="https://firms.modaps.eosdis.nasa.gov/api/area/csv/MAP_KEY/VIIRS_SNPP_NRT/5,50,7,52/1" \
+FIRMS_NATIONWIDE_URL="https://firms.modaps.eosdis.nasa.gov/api/area/csv/MAP_KEY/VIIRS_SNPP_NRT/5.5,47.0,15.5,55.2/5" \
+DWD_URL="https://services2.arcgis.com/7wuv6DH7DYhDuwvU/ArcGIS/rest/services/DWD/FeatureServer/3/query?where=1%3D1&outFields=*&f=json" \
+NINA_URL="https://warnung.bund.de/api31/dashboard/053580000000.json" \
+NINA_INDEX_URL="https://warnung.bund.de/api31/mowas/mapData.json" \
+EFFIS_URL="https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.0.0&request=GetFeature&typename=ms%3Amodis.ba.poly.today&outputformat=geojson&bbox=5%2C50%2C7%2C52" \
+uv run python apps/api/main.py
 ```
 
-The live URLs are intentionally environment-provided because FIRMS commonly requires a MAP_KEY and public feeds vary. Any unavailable source remains usable through its fixture.
+The live adapters normalize provider responses at the API boundary:
+
+- FIRMS official area CSV or JSON observations → `observations`
+- DWD ArcGIS FeatureServer JSON → the station nearest to the event
+- NINA dashboard or nationwide MoWaS index → warning details plus GeoJSON geometry
+- EFFIS GeoJSON or feature-list wrappers → `FeatureCollection`
+
+`FIRMS_URL` must contain a valid NASA `MAP_KEY`. The DWD URL should return the wildfire layer (`FeatureServer/3`) as JSON. NINA dashboard URLs must be district-level endpoints; nationwide map URLs are filtered to fire-related warnings and followed to detail and geometry endpoints. `NINA_MAX_WARNINGS` defaults to `10`; `NINA_INDEX_MAX_WARNINGS` defaults to `50`. `LIVE_EVENT_LIMIT` defaults to `25`.
+
+Responses are fetched once at API startup. Any unavailable or malformed source falls back to its fixture and is reported as `fallback` by `/api/health`.
+
+## Live discovery and refresh
+
+The API queries configured source feeds at startup. Live sources can be re-queried without restarting the process:
+
+```bash
+curl -X POST http://localhost:8025/api/refresh
+```
+
+The web UI's **Refresh live** button invokes the same endpoint. Refreshing reruns the configured connectors, rebuilds nationwide event candidates, clears exposure caches, and updates the source timestamp.
+
+Each live startup and refresh appends a normalized snapshot to the ignored local file `data/live/snapshots.jsonl`. Read stored snapshots with:
+
+```bash
+curl http://localhost:8025/api/history
+curl 'http://localhost:8025/api/history?event_id=<event-id>'
+```
+
+Provider APIs expose current data and some provider-specific archives, but they do not provide one stable normalized cross-source history. Local snapshots are therefore required for reliable replay, audit, and trend analysis. Demo mode uses the deterministic fixture timeline; live events use the current source snapshot and do not mix in the historical replay timeline.
 
 ## Data sources and methodology
 
@@ -73,7 +109,7 @@ Scenario envelopes use an oriented ellipse-like polygon with 2/5/10 km direction
 3. Open Event Intelligence; click **Why?** to inspect source-backed components and deterministic proxy assumptions.
 4. Use Portfolio Impact to show distance-band policies and TIV.
 5. Compare Current, Adverse, and Severe; observe geometry, exposure, losses, claims, and treaty status update.
-6. Open Action Center; move operational statuses from Not started to In progress/Completed.
+6. Open Action Center; move operational statuses from Not started to In Progress/Completed.
 7. Replay snapshots are represented by the deterministic timeline payload and reset to the final showcase snapshot with **Reset demo**.
 
 ## Verify
@@ -82,4 +118,4 @@ Scenario envelopes use an oriented ellipse-like polygon with 2/5/10 km direction
 make test
 ```
 
-Tests cover weighted risk bounds and missing sources, exact polygon/TIV selection, scenario area monotonicity/orientation anchor, and known loss-ratio arithmetic.
+Tests cover weighted risk bounds and missing sources, exact polygon/TIV selection, scenario area monotonicity/orientation anchor, known loss-ratio arithmetic, provider normalization, nationwide warning filtering, and live-event clustering.
