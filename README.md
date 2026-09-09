@@ -44,6 +44,53 @@ Docker is also supported:
 docker compose up
 ```
 
+## Deploy to Azure App Service
+
+The app is a dependency-free standard-library HTTP server, so it runs on an
+**Azure App Service (Linux, Python 3.12)** with no code changes — it binds
+`0.0.0.0` on the port Azure provides (`PORT`, or `WEBSITES_PORT` for
+containers).
+
+**Option A — code deployment (recommended)**
+
+1. Create a Linux App Service on the **Python 3.12** runtime.
+2. Deploy this branch (GitHub Actions, `az webapp up`, or the Deployment Center).
+   `requirements.txt` is present (no third-party packages) so Oryx detects Python.
+3. Set the **Startup Command** (Configuration → General settings) to:
+
+   ```
+   python apps/api/main.py
+   ```
+
+   (or `startup.sh`, which runs the same thing).
+4. Add **Application settings** (Configuration → Application settings) — these
+   become environment variables and override anything in `.env`:
+
+   - `DATA_MODE` = `live` (or `demo`)
+   - `SCM_DO_BUILD_DURING_DEPLOYMENT` = `true`
+   - In live mode also add: `FIRMS_URL`, `FIRMS_NATIONWIDE_URL`, `DWD_URL`,
+     `NINA_URL`, `NINA_INDEX_URL`, `EFFIS_URL`, and optionally
+     `NINA_MAX_WARNINGS`, `NINA_INDEX_MAX_WARNINGS`.
+
+   Do **not** commit `.env` (it is git-ignored) — keep source URLs/keys in
+   Application settings.
+
+**Option B — custom container**
+
+Build the included `Dockerfile` and deploy as an App Service for Containers
+(set `WEBSITES_PORT=8025`), or push to any container host.
+
+**Notes for App Service**
+
+- Runtime config saved from the in-app **Settings / Configuration** screen is
+  written to `data/demo/config.json` on the App Service filesystem (git-ignored,
+  so it persists per instance and does not ship in the repo). If absent, the app
+  falls back to built-in defaults.
+- `data/demo/portfolio.json` is committed, so startup is fast; if removed it is
+  regenerated deterministically at boot.
+- The health probe hits `/` (returns the app shell with HTTP 200). A mock login
+  page is served at `/login`.
+
 ## Seed demo data
 
 `make seed` (or the generator command above) writes `data/demo/portfolio.json` with 25,000 deterministic policies using seed `20260818`. Action statuses are persisted in `data/demo/actions.json` after a user changes them.

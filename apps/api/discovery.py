@@ -6,6 +6,8 @@ import math
 from datetime import datetime, timezone
 from typing import Any
 
+from analytics import config_store
+
 
 def haversine_km(a: tuple[float, float], b: tuple[float, float]) -> float:
     lat1, lon1 = map(math.radians, a)
@@ -66,8 +68,10 @@ def _observation_centroid(observations: list[dict[str, Any]]) -> tuple[float, fl
     )
 
 
-def cluster_firms(observations: list[dict[str, Any]], radius_km: float = 12) -> list[list[dict[str, Any]]]:
+def cluster_firms(observations: list[dict[str, Any]], radius_km: float | None = None) -> list[list[dict[str, Any]]]:
     """Cluster nearby satellite detections without treating each point as an event."""
+    if radius_km is None:
+        radius_km = config_store.get()["discovery"]["cluster_radius_km"]
     valid = [item for item in observations if item.get("latitude") is not None and item.get("longitude") is not None]
     if not valid:
         return []
@@ -154,11 +158,15 @@ def discover_live_events(
     nina: dict[str, Any],
     dwd: dict[str, Any],
     effis: dict[str, Any],
-    limit: int = 25,
+    limit: int | None = None,
 ) -> list[dict[str, Any]]:
+    dc = config_store.get()["discovery"]
+    if limit is None:
+        limit = dc["max_events"]
+    min_size = dc["min_cluster_size"]; min_frp = dc["min_frp"]; warning_match_km = dc["warning_match_km"]
     observations = firms.get("observations", [])
     warnings = nina.get("warnings", [])
-    clusters = [cluster for cluster in cluster_firms(observations) if len(cluster) >= 2 or max((_number(item.get("frp")) for item in cluster), default=0) >= 20]
+    clusters = [cluster for cluster in cluster_firms(observations) if len(cluster) >= min_size or max((_number(item.get("frp")) for item in cluster), default=0) >= min_frp]
     warning_candidates = _warning_candidates(warnings)
     records: list[dict[str, Any]] = []
     used_clusters: set[int] = set()
@@ -168,7 +176,7 @@ def discover_live_events(
         nearest_distance = float("inf")
         for index, cluster in enumerate(clusters):
             distance = haversine_km(centroid, _observation_centroid(cluster))
-            if distance < nearest_distance and distance <= 30:
+            if distance < nearest_distance and distance <= warning_match_km:
                 nearest_index, nearest_distance = index, distance
         cluster = clusters[nearest_index] if nearest_index is not None else []
         if nearest_index is not None:

@@ -1,0 +1,65 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Live mode data flow" id="nrw-live-flow">
+    <mxGraphModel dx="900" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="LIVE MODE — how live data becomes a risk score (5 simple steps)&#10;Read top to bottom.  Green = outside data  ·  Blue = fetch &amp; clean  ·  Orange = find events  ·  Purple = score  ·  Teal = money at risk  ·  Yellow = show" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontStyle=1;fontSize=13;align=left;verticalAlign=middle;spacing=8">
+          <mxGeometry x="20" y="16" width="860" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band_src" value="THE 4 LIVE SOURCES  (the &quot;witnesses&quot;)" vertex="1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontColor=#5A7845;fontSize=12">
+          <mxGeometry x="20" y="86" width="400" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s1" value="NASA FIRMS&#10;(satellites)&#10;&#10;WHERE fires are —&#10;heat &quot;hot spots&quot;." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="20" y="110" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="DWD&#10;(weather service)&#10;&#10;HOW dangerous —&#10;fire-danger 1–5, wind." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="240" y="110" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="NINA&#10;(official warnings)&#10;&#10;CONFIRMED by authorities —&#10;public fire alerts." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="460" y="110" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="EFFIS&#10;(EU burned areas)&#10;&#10;SUPPORTING proof —&#10;an area already burned." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="680" y="110" width="200" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fetch" value="STEP 1 — FETCH &amp; CLEAN&#10;&#10;Download every source live, and tidy each reply into one common format.&#10;If a source is silent, use its saved sample copy (that source shows an amber &quot;fallback&quot; light)." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="230" y="256" width="440" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="find" value="STEP 2 — FIND EVENTS&#10;&#10;Group satellite hot spots within 12 km into one fire (drop lone dots — one BBQ is not an event).&#10;Attach any official warning within 30 km.  Rank by severity and keep the top 25." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="230" y="392" width="440" height="96" as="geometry" />
+        </mxCell>
+
+        <mxCell id="score" value="STEP 3 — SCORE EACH EVENT  (Risk 0–100)&#10;&#10;A weighted mix of 7 ingredients:&#10;fire 25%  ·  weather 20%  ·  wind 15%  ·  warning 15%  ·  vegetation 10%  ·  growth 10%  ·  agreement 5%&#10;&#10;Also a Confidence % = how many sources back the event up." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="230" y="534" width="440" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portfolio" value="STEP 4 — PORTFOLIO IMPACT  (money at risk)&#10;&#10;Lay a wind-shaped &quot;threat zone&quot; over 25,000 sample policies.&#10;Count policies + insured value inside  →  indicative loss range  →&#10;reinsurance check (keep €50m / cover €100m).&#10;Figures are indicative planning aids, not actuarial." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B0E3E6;strokeColor=#0E8088;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="230" y="700" width="440" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="screen" value="STEP 5 — SHOW ON SCREEN&#10;&#10;Live map, ranked event list,&#10;risk scores and money-at-risk.&#10;&quot;Refresh live&quot; re-runs the whole flow." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="150" y="866" width="290" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="history" value="MEMORY  (history log)&#10;&#10;Each refresh saves one snapshot —&#10;time, sources and every event's score —&#10;so past moments can be read back." vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;align=center;verticalAlign=middle;fontSize=12">
+          <mxGeometry x="470" y="866" width="290" height="104" as="geometry" />
+        </mxCell>
+
+        <mxCell id="es1" edge="1" parent="1" source="s1" target="fetch" style="endArrow=block;rounded=1;html=1;strokeColor=#82B366" />
+        <mxCell id="es2" edge="1" parent="1" source="s2" target="fetch" style="endArrow=block;rounded=1;html=1;strokeColor=#82B366" />
+        <mxCell id="es3" edge="1" parent="1" source="s3" target="fetch" style="endArrow=block;rounded=1;html=1;strokeColor=#82B366" />
+        <mxCell id="es4" edge="1" parent="1" source="s4" target="fetch" style="endArrow=block;rounded=1;html=1;strokeColor=#82B366" />
+
+        <mxCell id="ef" value="clean data" edge="1" parent="1" source="fetch" target="find" style="endArrow=block;rounded=1;html=1;fontSize=11" />
+        <mxCell id="efi" value="events" edge="1" parent="1" source="find" target="score" style="endArrow=block;rounded=1;html=1;fontSize=11" />
+        <mxCell id="esc" value="location + wind" edge="1" parent="1" source="score" target="portfolio" style="endArrow=block;rounded=1;html=1;fontSize=11" />
+        <mxCell id="ep1" value="results" edge="1" parent="1" source="portfolio" target="screen" style="endArrow=block;rounded=1;html=1;fontSize=11" />
+        <mxCell id="ep2" value="save snapshot" edge="1" parent="1" source="portfolio" target="history" style="endArrow=block;rounded=1;html=1;dashed=1;fontSize=11;strokeColor=#666666" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

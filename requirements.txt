@@ -1,0 +1,3 @@
+# This application uses only the Python standard library — no third-party packages.
+# The file is intentionally (almost) empty so Azure App Service / Oryx detects a
+# Python app and provisions the runtime. Do not remove.

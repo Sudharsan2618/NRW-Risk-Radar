@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · Swarion</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..800&display=swap">
+<style>
+:root{
+  --color-bg:#FFFFFF; --color-surface:#F6F5F5;
+  --color-text-1:#1E1F21; --color-text-2:#6D6E6F; --color-text-3:#9B9B9B;
+  --color-border:#E8E8E8; --color-border-2:#CECECE;
+  --color-brand:#4573D2; --color-brand-hover:#3660BD; --color-brand-tint:rgba(69,115,210,0.10);
+  --color-danger:#F06A6A;
+  --radius-md:7px; --shadow-focus:0 0 0 3px var(--color-brand-tint);
+  --font-sans:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text-1);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.page{min-height:100vh;background:var(--color-bg);display:flex;flex-direction:column;align-items:center;padding:32px 24px}
+.topbar{width:100%;max-width:1100px;display:flex;align-items:center;margin-bottom:24px}
+.topbar img{height:44px;width:auto;object-fit:contain}
+.card{flex:1;width:100%;max-width:420px;display:flex;flex-direction:column;justify-content:center;padding-bottom:8vh}
+.head{text-align:center;margin-bottom:32px}
+.head h1{font-size:32px;font-weight:700;color:var(--color-text-1);margin:0;letter-spacing:-.5px}
+.head p{font-size:16px;color:var(--color-text-2);margin:10px 0 0}
+.notice{display:none;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--radius-md);background:rgba(240,106,106,.08);border:1px solid var(--color-danger);color:var(--color-danger);font-size:13px;line-height:1.4;margin-bottom:16px}
+label.field{display:block;font-size:13px;font-weight:600;color:var(--color-text-2);margin-bottom:8px}
+.inp{width:100%;height:52px;padding:0 16px;font-size:15px;color:var(--color-text-1);font-family:inherit;border-radius:var(--radius-md);outline:none;background:var(--color-bg);border:1.5px solid var(--color-border-2);transition:border-color .12s,box-shadow .12s}
+.inp:focus{border-color:var(--color-brand);box-shadow:var(--shadow-focus)}
+.inp:disabled{background:var(--color-surface)}
+.otp-block{margin-top:18px}
+.otp-block .inp{letter-spacing:.3em}
+.otp-hint{font-size:12.5px;color:var(--color-text-3);margin:8px 0 0}
+.linkbtn{background:none;border:none;padding:0;color:var(--color-brand);cursor:pointer;font-weight:600;font-family:inherit;font-size:12.5px}
+.submit{width:100%;height:52px;margin-top:20px;border-radius:var(--radius-md);border:none;cursor:pointer;background:var(--color-brand);color:#fff;font-size:16px;font-weight:600;font-family:inherit;transition:background .12s}
+.submit:hover{background:var(--color-brand-hover)}
+.submit:disabled{cursor:not-allowed;opacity:.7}
+.divider{display:flex;align-items:center;gap:14px;margin:24px 0}
+.divider i{flex:1;height:1px;background:var(--color-border)}
+.divider span{font-size:13px;font-weight:700;color:var(--color-text-3);letter-spacing:.5px}
+.ms-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;height:50px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-bg);cursor:pointer;font-size:14px;font-weight:600;color:var(--color-text-1);font-family:inherit;transition:background .12s,border-color .12s}
+.ms-btn:hover{background:var(--color-surface);border-color:var(--color-border-2)}
+.foot-link{font-size:13.5px;color:var(--color-text-2);text-align:center;margin-top:28px}
+.foot-link.tight{margin-top:8px}
+.foot-link a{color:var(--color-brand);font-weight:600;text-decoration:none}
+.legal{font-size:12.5px;color:var(--color-text-3);text-align:center;margin-top:20px;line-height:1.5}
+.legal a{color:var(--color-text-2);text-decoration:underline}
+.copy{text-align:center;margin-top:28px;line-height:1.6}
+.copy p{font-size:12px;color:var(--color-text-3);margin:0}
+.copy p+p{margin-top:4px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar"><img src="assets/logo.png" alt="Swarion"></div>
+  <div class="card">
+    <div class="head">
+      <h1>Welcome back</h1>
+      <p>Sign in with a one-time code sent to your email</p>
+    </div>
+    <div class="notice" id="notice"></div>
+    <form id="login-form">
+      <label class="field" for="login-email">Email address</label>
+      <input class="inp" id="login-email" type="email" required autocomplete="email" placeholder="you@company.com">
+      <div class="otp-block" id="otp-block" hidden>
+        <label class="field" for="login-otp">One-time passcode</label>
+        <input class="inp" id="login-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+        <p class="otp-hint">Code sent to <span id="otp-email"></span>. <button type="button" class="linkbtn" id="use-different">Use a different email</button></p>
+      </div>
+      <button class="submit" id="submit-btn" type="submit">Get Login Code</button>
+    </form>
+    <div class="divider"><i></i><span>OR</span><i></i></div>
+    <button class="ms-btn" id="ms-btn" type="button">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="0" y="0" width="7.2" height="7.2" fill="#F25022"/><rect x="8.8" y="0" width="7.2" height="7.2" fill="#7FBA00"/><rect x="0" y="8.8" width="7.2" height="7.2" fill="#00A4EF"/><rect x="8.8" y="8.8" width="7.2" height="7.2" fill="#FFB900"/></svg>
+      Microsoft (Internal)
+    </button>
+    <p class="foot-link">Have an invitation? <a href="#" id="signup-link">Create your account</a></p>
+    <p class="foot-link tight">Don't Have an invitation? <a href="https://agamxts.com/work-with-us/" target="_blank" rel="noopener noreferrer">Contact Us</a></p>
+    <p class="legal">By continuing, you agree to AgamX's <a href="https://agamxts.com/wp-content/uploads/2025/10/Terms-of-Service.pdf" target="_blank" rel="noopener noreferrer">Terms of Service</a> and <a href="https://agamxts.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</p>
+    <div class="copy">
+      <p>Copyright © 2025 Project Swarion — All Rights Reserved.</p>
+      <p>Swarion AI is a product of Agamx Technology Solutions GmbH, Cologne, Germany.</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var form=document.getElementById('login-form'),
+      emailInp=document.getElementById('login-email'),
+      otpBlock=document.getElementById('otp-block'),
+      otpInp=document.getElementById('login-otp'),
+      otpEmail=document.getElementById('otp-email'),
+      submitBtn=document.getElementById('submit-btn'),
+      notice=document.getElementById('notice'),
+      useDifferent=document.getElementById('use-different'),
+      showOtp=false, busy=false;
+
+  function signIn(){
+    try{localStorage.setItem('swarion-signed-in','1');}catch(e){}
+    window.location.href='/';
+  }
+  function setLabel(){
+    submitBtn.textContent = busy ? (showOtp?'Verifying…':'Sending code…') : (showOtp?'Verify & Sign In':'Get Login Code');
+    submitBtn.disabled = busy;
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    notice.style.display='none';
+    if(busy) return;
+    busy=true; setLabel();
+    // Mock: no backend — mimic a short round-trip.
+    setTimeout(function(){
+      busy=false;
+      if(!showOtp){
+        showOtp=true;
+        otpEmail.textContent=emailInp.value.trim()||'your email';
+        otpBlock.hidden=false;
+        emailInp.disabled=true;
+        setLabel();
+        otpInp.focus();
+      } else {
+        signIn();
+      }
+    }, 500);
+  });
+  useDifferent.addEventListener('click',function(){
+    showOtp=false; otpInp.value=''; otpBlock.hidden=true; emailInp.disabled=false; notice.style.display='none'; setLabel(); emailInp.focus();
+  });
+  document.getElementById('ms-btn').addEventListener('click',signIn);
+  document.getElementById('signup-link').addEventListener('click',function(e){e.preventDefault();signIn();});
+})();
+</script>
+</body>
+</html>

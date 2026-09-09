@@ -4,12 +4,11 @@ from __future__ import annotations
 import math
 from typing import Any, Iterable
 
-RISK_WEIGHTS = {"active_fire": 0.25, "weather": 0.20, "wind": 0.15, "warning": 0.15, "vegetation": 0.10, "growth": 0.10, "corroboration": 0.05}
-DWD_SCORES = {1: 10, 2: 30, 3: 50, 4: 75, 5: 100}
-WARNING_SCORES = {"none": 0, "informational": 20, "official warning": 60, "severe warning": 80, "evacuation": 100}
+from analytics import config_store
+
+# Static scenario metadata (display name + severity). The editable spread /
+# crosswind distances come from config_store; see scenario_envelope.
 SCENARIOS = {"current": {"name": "Current", "spread_km": 2, "crosswind_km": 1, "severity": 45}, "adverse": {"name": "Adverse", "spread_km": 5, "crosswind_km": 2, "severity": 70}, "severe": {"name": "Severe", "spread_km": 10, "crosswind_km": 4, "severity": 95}}
-LOSS_RATIOS = {"inside": (0.25, 0.80), "current": (0.05, 0.25), "adverse": (0.01, 0.10), "severe": (0.002, 0.05)}
-CLAIM_RATIOS = {"inside": (0.60, 0.90), "current": (0.15, 0.40), "adverse": (0.05, 0.20), "severe": (0.01, 0.08)}
 
 
 def clamp(value: float, low: float = 0, high: float = 100) -> float:
@@ -29,38 +28,46 @@ def bearing_degrees(a: tuple[float, float], b: tuple[float, float]) -> float:
 
 
 def risk_components(signals: dict[str, Any]) -> dict[str, float]:
+    cfg = config_store.get()
     fires = signals.get("active_fire_detections", [])
-    active = float(signals.get("active_fire_score", min(100, 25 + len(fires) * 12))) if fires else 0
-    weather = float(signals.get("weather_score", DWD_SCORES.get(int(signals["dwd_danger"]), 0))) if signals.get("dwd_danger") is not None else 0
+    af = cfg["active_fire"]
+    active = float(signals.get("active_fire_score", min(100, af["base"] + len(fires) * af["per_detection"]))) if fires else 0
+    weather = float(signals.get("weather_score", cfg["dwd_scores"].get(str(int(signals["dwd_danger"])), 0))) if signals.get("dwd_danger") is not None else 0
+    wnd = cfg["wind"]
     wind_speed = float(signals.get("wind_speed_kmh", 28))
-    wind = float(signals.get("wind_score", clamp(wind_speed * 2.25 + (12 if signals.get("wind_gust_kmh", 0) > 45 else 0))))
+    wind = float(signals.get("wind_score", clamp(wind_speed * wnd["multiplier"] + (wnd["gust_bonus"] if signals.get("wind_gust_kmh", 0) > wnd["gust_threshold"] else 0))))
     warning_level = str(signals.get("warning_level", "none")).lower()
-    warning = float(signals.get("warning_score", WARNING_SCORES.get(warning_level, 0)))
-    vegetation = float(signals["vegetation_score"]) if "vegetation_score" in signals else (50 if signals else 0)
-    growth = float(signals["growth_score"]) if "growth_score" in signals else (min(100, 20 + len(fires) * 5) if signals else 0)
+    warning = float(signals.get("warning_score", cfg["warning_scores"].get(warning_level, 0)))
+    vegetation = float(signals["vegetation_score"]) if "vegetation_score" in signals else (cfg["vegetation"] if signals else 0)
+    grw = cfg["growth"]
+    growth = float(signals["growth_score"]) if "growth_score" in signals else (min(100, grw["base"] + len(fires) * grw["per_detection"]) if signals else 0)
     sources = sum(bool(signals.get(k)) for k in ("active_fire_detections", "dwd_danger", "warning_level", "effis_context"))
     corroboration = float(signals.get("corroboration_score", clamp(sources / 4 * 100)))
     return {"active_fire": clamp(active), "weather": clamp(weather), "wind": clamp(wind), "warning": clamp(warning), "vegetation": clamp(vegetation), "growth": clamp(growth), "corroboration": clamp(corroboration)}
 
 
 def calculate_risk(components: dict[str, float]) -> int:
-    return round(clamp(sum(components.get(name, 0) * weight for name, weight in RISK_WEIGHTS.items())))
+    weights = config_store.get()["risk_weights"]
+    return round(clamp(sum(components.get(name, 0) * weight for name, weight in weights.items())))
 
 
 def confidence_score(signals: dict[str, Any]) -> int:
-    score = 25 if signals.get("active_fire_detections") else 0
-    score += 20 if signals.get("effis_context") else 0; score += 10 if signals.get("dwd_danger") else 0
-    score += 25 if signals.get("warning_level") and signals.get("warning_level") != "none" else 0
-    score += 15 if signals.get("local_confirmation") else 0; score += 5 if signals.get("recent_observation") else 0
+    c = config_store.get()["confidence"]
+    score = c["firms"] if signals.get("active_fire_detections") else 0
+    score += c["effis"] if signals.get("effis_context") else 0; score += c["dwd"] if signals.get("dwd_danger") else 0
+    score += c["warning"] if signals.get("warning_level") and signals.get("warning_level") != "none" else 0
+    score += c["local"] if signals.get("local_confirmation") else 0; score += c["recent"] if signals.get("recent_observation") else 0
     return min(100, score)
 
 
 def trend(current: int, previous: int) -> str:
-    return "increasing" if current - previous >= 3 else "decreasing" if current - previous <= -3 else "stable"
+    threshold = config_store.get()["trend_threshold"]
+    return "increasing" if current - previous >= threshold else "decreasing" if current - previous <= -threshold else "stable"
 
 
 def scenario_envelope(centroid: tuple[float, float], wind_direction: float, scenario: str) -> dict[str, Any]:
-    spec = SCENARIOS[scenario]; lat, lon = centroid; lat_km = 111.32; lon_km = lat_km * math.cos(math.radians(lat)); theta = math.radians(wind_direction)
+    scenarios = config_store.get()["scenarios"]
+    spec = scenarios.get(scenario, scenarios["current"]); lat, lon = centroid; lat_km = 111.32; lon_km = lat_km * math.cos(math.radians(lat)); theta = math.radians(wind_direction)
     points: list[list[float]] = []
     for i in range(49):
         angle = 2 * math.pi * i / 48
@@ -96,13 +103,17 @@ def exposure(policies: Iterable[dict[str, Any]], centroid: tuple[float, float], 
 
 
 def loss_and_claims(exposure_data: dict[str, Any], scenario: str) -> dict[str, Any]:
-    total = exposure_data["scenario"]["tiv"]; inside = exposure_data["bands"]["inside"]["tiv"]; outer = max(0, total - inside); inside_low, inside_high = LOSS_RATIOS["inside"]; outer_low, outer_high = LOSS_RATIOS[scenario]
+    cfg = config_store.get(); loss_ratios = cfg["loss_ratios"]; claim_ratios = cfg["claim_ratios"]
+    total = exposure_data["scenario"]["tiv"]; inside = exposure_data["bands"]["inside"]["tiv"]; outer = max(0, total - inside); inside_low, inside_high = loss_ratios["inside"]; outer_low, outer_high = loss_ratios[scenario]
     loss_low, loss_high = round(inside * inside_low + outer * outer_low), round(inside * inside_high + outer * outer_high)
-    c_inside_low, c_inside_high = CLAIM_RATIOS["inside"]; c_outer_low, c_outer_high = CLAIM_RATIOS[scenario]; outer_policies = max(0, exposure_data["scenario"]["policies"] - exposure_data["bands"]["inside"]["policies"])
+    c_inside_low, c_inside_high = claim_ratios["inside"]; c_outer_low, c_outer_high = claim_ratios[scenario]; outer_policies = max(0, exposure_data["scenario"]["policies"] - exposure_data["bands"]["inside"]["policies"])
     claims_low = round(exposure_data["bands"]["inside"]["policies"] * c_inside_low + outer_policies * c_outer_low); claims_high = round(exposure_data["bands"]["inside"]["policies"] * c_inside_high + outer_policies * c_outer_high)
     return {"loss_low": loss_low, "loss_high": loss_high, "claims_low": claims_low, "claims_high": claims_high, "ratios": {"inside": [inside_low, inside_high], "outer": [outer_low, outer_high]}}
 
 
-def reinsurance(loss_low: int, loss_high: int, retention: int = 50_000_000, limit: int = 100_000_000) -> dict[str, Any]:
+def reinsurance(loss_low: int, loss_high: int, retention: int | None = None, limit: int | None = None) -> dict[str, Any]:
+    layer = config_store.get()["reinsurance"]
+    retention = layer["retention"] if retention is None else retention
+    limit = layer["limit"] if limit is None else limit
     status = "below retention" if loss_high < retention else "potentially attaches" if loss_low < retention else "attaches"
     return {"retention": retention, "limit": limit, "status": status, "ceded_loss_low": max(0, min(limit, loss_low - retention)), "ceded_loss_high": max(0, min(limit, loss_high - retention))}

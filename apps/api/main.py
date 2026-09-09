@@ -15,9 +15,37 @@ from adapters import fetch_and_normalize
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+
+
+def load_dotenv(path: Path) -> None:
+    """Populate os.environ from a .env file without overriding existing vars.
+
+    Kept dependency-free (no python-dotenv). Values already present in the
+    environment win, so production/dashboard settings are never overwritten.
+    """
+    if not path.is_file():
+        return
+    for raw in path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+load_dotenv(ROOT / ".env")
+
+from analytics import config_store
 from analytics.core import SCENARIOS, calculate_risk, confidence_score, exposure, loss_and_claims, reinsurance, risk_components, scenario_envelope, trend
 from discovery import discover_live_events
 from synthetic.generate_portfolio import generate
+
+config_store.load()
 
 FIXTURES = ROOT / "data" / "fixtures"
 DEMO = ROOT / "data" / "demo"
@@ -118,7 +146,7 @@ def load_state(persist: bool = False):
         nationwide_nina, nationwide_nina_health = source("NINA / Germany", "nina_sample.json", "NINA_INDEX_URL", showcase, "NINA_INDEX_MAX_WARNINGS")
         health["NASA FIRMS / Germany"] = nationwide_firms_health
         health["NINA / Germany"] = nationwide_nina_health
-        records = discover_live_events(nationwide_firms, nationwide_nina, dwd, effis, int(os.getenv("LIVE_EVENT_LIMIT", "25")))
+        records = discover_live_events(nationwide_firms, nationwide_nina, dwd, effis)
         if not records:
             records = [showcase_record]
         else:
@@ -287,6 +315,8 @@ def response_payload(path: str, query: dict[str, list[str]]):
     parts = [part for part in path.split("/") if part]
     if parts == ["api", "health"]:
         return {"ok": True, "mode": MODE, "updated_at": STATE["updated_at"], "sources": STATE["health"]}
+    if parts == ["api", "config"]:
+        return {"config": config_store.get(), "defaults": config_store.DEFAULTS}
     if parts == ["api", "events"]:
         return {"events": [compact_event(record) for record in STATE["records"].values()], "updated_at": STATE["updated_at"]}
     if parts == ["api", "history"]:
@@ -355,11 +385,12 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self.send_json({"error": str(exc)}, 500)
             return
-        file_path = ROOT / "apps" / "web" / ("index.html" if parsed.path in ("/", "") else parsed.path.lstrip("/"))
+        route = "/login.html" if parsed.path == "/login" else parsed.path
+        file_path = ROOT / "apps" / "web" / ("index.html" if route in ("/", "") else route.lstrip("/"))
         if not file_path.is_file():
             file_path = ROOT / "apps" / "web" / "index.html"
         content = file_path.read_bytes()
-        content_type = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml"}.get(file_path.suffix, "text/plain")
+        content_type = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".ico": "image/x-icon", ".webp": "image/webp"}.get(file_path.suffix, "text/plain")
         self.send_response(200)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(content)))
@@ -374,6 +405,19 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, "mode": MODE, "updated_at": state["updated_at"], "events": [compact_event(record) for record in state["records"].values()], "sources": state["health"]})
             except Exception as exc:
                 self.send_json({"error": str(exc)}, 502)
+            return
+        if parsed.path in ("/api/config", "/api/config/reset"):
+            try:
+                if parsed.path.endswith("/reset"):
+                    config_store.reset()
+                else:
+                    body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+                    config_store.update(body.get("config", body))
+                with _state_lock:
+                    _exposure_cache.clear()
+                self.send_json({"ok": True, "config": config_store.get()})
+            except Exception as exc:
+                self.send_json({"error": str(exc)}, 400)
             return
         self.send_json({"error": "Not found"}, 404)
 
@@ -397,7 +441,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    port = int(os.getenv("PORT", "8025"))
+    # Azure App Service injects PORT (code) or WEBSITES_PORT (container); fall back for local runs.
+    port = int(os.getenv("PORT") or os.getenv("WEBSITES_PORT") or "8025")
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     print(f"NRW Wildfire Radar listening on http://0.0.0.0:{port} ({MODE} mode)", flush=True)
     server.serve_forever()
