@@ -1,0 +1,34 @@
+# Render blueprint — deploys the NRW Wildfire Radar as a managed web service.
+# In Render: New + → Blueprint → pick this repo. Then fill the values marked
+# "sync: false" (the live-source URLs) in the Render dashboard so no secrets
+# live in this public repo.
+services:
+  - type: web
+    name: nrw-wildfire-radar
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python apps/api/main.py"
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: DATA_MODE
+        value: live
+      - key: NINA_MAX_WARNINGS
+        value: "10"
+      - key: NINA_INDEX_MAX_WARNINGS
+        value: "50"
+      # Set these in the Render dashboard (Environment tab) — not in git:
+      - key: FIRMS_URL
+        sync: false
+      - key: FIRMS_NATIONWIDE_URL
+        sync: false
+      - key: DWD_URL
+        sync: false
+      - key: NINA_URL
+        sync: false
+      - key: NINA_INDEX_URL
+        sync: false
+      - key: EFFIS_URL
+        sync: false
