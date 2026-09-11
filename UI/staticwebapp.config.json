@@ -1,0 +1,17 @@
+{
+  "routes": [
+    { "route": "/login", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/signup", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/auth/*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/.auth/*", "allowedRoles": ["anonymous"] },
+    { "route": "/_next/*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/api/*", "allowedRoles": ["anonymous", "authenticated"] },
+    { "route": "/*", "allowedRoles": ["anonymous", "authenticated"] }
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/login"
+    }
+  }
+}

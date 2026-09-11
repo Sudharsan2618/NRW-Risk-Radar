@@ -43,7 +43,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .topbar{min-height:60px;border-bottom:1px solid var(--color-line);display:flex;align-items:center;gap:14px;padding:8px 20px;background:var(--color-bg);position:sticky;top:0;z-index:40}
 .brand{display:flex;align-items:center;gap:13px;margin-right:auto;text-decoration:none;padding:2px;border-radius:var(--radius-md);transition:opacity var(--dur) var(--ease)}
 .brand:hover{opacity:.78}
-.brand-wordmark{height:38px;width:auto;display:block}
+.brand-wordmark{width:176px;height:30px;object-fit:cover;object-position:center;display:block}
 .brand .dark-logo{display:none}
 html[data-theme="dark"] .brand .light-logo{display:none}
 html[data-theme="dark"] .brand .dark-logo{display:block}

@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.env.local
+.env.local.example
+*.md
+.gitignore
+.eslintrc*
+.vscode
